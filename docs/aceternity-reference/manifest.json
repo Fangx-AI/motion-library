@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "publisher": "Aceternity UI",
+  "acquiredDate": "2026-10-04",
+  "sourceHost": "https://ui.aceternity.com",
+  "licenceUrl": "https://ui.aceternity.com/licence",
+  "scope": "Design sources used by this end-product website; original registry and component source files are not redistributed as a separate reference pack.",
+  "sources": [
+    {
+      "name": "hero-section-demo-1",
+      "type": "registry:block",
+      "documentationUrl": "https://ui.aceternity.com/components/hero-sections-free",
+      "registryUrl": "https://ui.aceternity.com/registry/hero-section-demo-1.json",
+      "registrySha256": "f1e5c00080b7f00863633cb83c73db7ba17c3acab8da7629026cb08d447ad45a",
+      "files": [
+        {
+          "originalPath": "components/hero-section-demo-1.tsx",
+          "sourceSha256": "4659524f06d6e38c3d392c1a90f0a7648141408ad5b569be1e21fa4fcd667f15",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "resizable-navbar",
+      "type": "registry:ui",
+      "documentationUrl": "https://ui.aceternity.com/components/resizable-navbar",
+      "registryUrl": "https://ui.aceternity.com/registry/resizable-navbar.json",
+      "registrySha256": "3294ecb0b3efacc058c190575a1bdacd9084f7b994812d4f3e3879b0ba5440f9",
+      "files": [
+        {
+          "originalPath": "components/ui/resizable-navbar.tsx",
+          "sourceSha256": "d4188bfc54caef986fe5a91ffd3ede454a2ce8773d5dffba01fa6615d5d8a5af",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "resizable-navbar-demo",
+      "type": "registry:component",
+      "documentationUrl": "https://ui.aceternity.com/components/resizable-navbar",
+      "registryUrl": "https://ui.aceternity.com/registry/resizable-navbar-demo.json",
+      "registrySha256": "616ac73c8c3d3aa4b7468227dba8cb4c0970bf83c387d2c9701db93890e50773",
+      "files": [
+        {
+          "originalPath": "components/resizable-navbar-demo.tsx",
+          "sourceSha256": "b4b2520dc657a04fc1b67909d9fe4b61f55b47b96974ffd99c0fb8da71252b68",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        },
+        {
+          "originalPath": "components/ui/resizable-navbar.tsx",
+          "sourceSha256": "d4188bfc54caef986fe5a91ffd3ede454a2ce8773d5dffba01fa6615d5d8a5af",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": [
+        "https://ui.aceternity.com/registry/resizable-navbar.json"
+      ],
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "expandable-card-demo-grid",
+      "type": "registry:block",
+      "documentationUrl": "https://ui.aceternity.com/components/expandable-card",
+      "registryUrl": "https://ui.aceternity.com/registry/expandable-card-demo-grid.json",
+      "registrySha256": "94be5ae18c6f4297e2b4a50dfcd1c62b0d7c0e5999e08d3f395903318428d7bd",
+      "files": [
+        {
+          "originalPath": "components/expandable-card-demo-grid.tsx",
+          "sourceSha256": "1275ee87ca08821573918fefa5b4b8f770a15cef566c19bb437129c33bc65a64",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        },
+        {
+          "originalPath": "hooks/use-outside-click.tsx",
+          "sourceSha256": "6c6bcad82c0fc7fc993935f651985ef4f6bd631c24ff5e87d25e5a31a60802e4",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": [
+        "https://ui.aceternity.com/registry/use-outside-click.json"
+      ],
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "documentationUrl": "https://ui.aceternity.com/components/signup-form",
+      "registryUrl": "https://ui.aceternity.com/registry/input.json",
+      "registrySha256": "8e1d9209741a5a8aac7f0d314d2ae4ca2e071a4f6faa595c1df5b0f81845cb53",
+      "files": [
+        {
+          "originalPath": "components/ui/input.tsx",
+          "sourceSha256": "07d015c40c7ea00c108df95dc80d50c52c74aafe900ec48f7ed33058ade5fe6e",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "label",
+      "type": "registry:ui",
+      "documentationUrl": "https://ui.aceternity.com/components/signup-form",
+      "registryUrl": "https://ui.aceternity.com/registry/label.json",
+      "registrySha256": "9d4dea1eb3cdbf1a48ab515ba3b06df551296074f126d9831a5d6e2f71bed355",
+      "files": [
+        {
+          "originalPath": "components/ui/label.tsx",
+          "sourceSha256": "0e7dbd95b199d23704af5c4b5517fabc1595ef3dea448b9a0158654d1765ac4b",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "signup-form-demo",
+      "type": "registry:component",
+      "documentationUrl": "https://ui.aceternity.com/components/signup-form",
+      "registryUrl": "https://ui.aceternity.com/registry/signup-form-demo.json",
+      "registrySha256": "4de38d1cd76a0bb64db5b85063590ccc698ceced237d29e8160887637a3f96be",
+      "files": [
+        {
+          "originalPath": "components/signup-form-demo.tsx",
+          "sourceSha256": "f1483ca9eee55af8d154fae3ba3fdcb9f6caeae11ae0d89b4e780b54d1dae7cb",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        },
+        {
+          "originalPath": "components/ui/input.tsx",
+          "sourceSha256": "07d015c40c7ea00c108df95dc80d50c52c74aafe900ec48f7ed33058ade5fe6e",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        },
+        {
+          "originalPath": "components/ui/label.tsx",
+          "sourceSha256": "0e7dbd95b199d23704af5c4b5517fabc1595ef3dea448b9a0158654d1765ac4b",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": [
+        "https://ui.aceternity.com/registry/input.json",
+        "https://ui.aceternity.com/registry/label.json"
+      ],
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "documentationUrl": "https://ui.aceternity.com/components/tabs",
+      "registryUrl": "https://ui.aceternity.com/registry/tabs.json",
+      "registrySha256": "a0f2d1eb503190ec2e53ee5887a9b33d7c94e3f6d6548f07afd0a79ef0effcaa",
+      "files": [
+        {
+          "originalPath": "components/ui/tabs.tsx",
+          "sourceSha256": "0d34660aeb2d49d912b1216343bf7a86edf6dc2e0eb097ad53c30068e6950a71",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "animated-modal",
+      "type": "registry:ui",
+      "documentationUrl": "https://ui.aceternity.com/components/animated-modal",
+      "registryUrl": "https://ui.aceternity.com/registry/animated-modal.json",
+      "registrySha256": "141e95b1c01a22c3678be302a2eac5091b3dd0b8ceeebd7a6dbd461861ebf92a",
+      "files": [
+        {
+          "originalPath": "components/ui/animated-modal.tsx",
+          "sourceSha256": "9d4166aa1229b45725c62bbde513a7198639df9365253c9e7be604b00bf1ea20",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "code-block",
+      "type": "registry:ui",
+      "documentationUrl": "https://ui.aceternity.com/components/code-block",
+      "registryUrl": "https://ui.aceternity.com/registry/code-block.json",
+      "registrySha256": "fa45c82d6dd867477213374d837ea75b00d4642ef686edf15cbc4df743d623d2",
+      "files": [
+        {
+          "originalPath": "components/ui/code-block.tsx",
+          "sourceSha256": "3715eb017b80e5c019db8d60a22c1d0e72390cc6c17ec958bd9358548a19b076",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "stateful-button",
+      "type": "registry:ui",
+      "documentationUrl": "https://ui.aceternity.com/components/stateful-button",
+      "registryUrl": "https://ui.aceternity.com/registry/stateful-button.json",
+      "registrySha256": "a56addb268e991c0db018e20dbee7fb00ef9e0a3991053d696e765848c866b66",
+      "files": [
+        {
+          "originalPath": "components/ui/stateful-button.tsx",
+          "sourceSha256": "b19e3cee5986e376b9bffb740b77747ffd3c149d150c9e36b73c395ba7cb2ef9",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    },
+    {
+      "name": "use-outside-click",
+      "type": "registry:hook",
+      "documentationUrl": "https://ui.aceternity.com/components/expandable-card",
+      "registryUrl": "https://ui.aceternity.com/registry/use-outside-click.json",
+      "registrySha256": "92c0a8c69abffce33a1ecbe8c9a44e01a8642a4cbb8d5f202047946940316095",
+      "files": [
+        {
+          "originalPath": "hooks/use-outside-click.tsx",
+          "sourceSha256": "6c6bcad82c0fc7fc993935f651985ef4f6bd631c24ff5e87d25e5a31a60802e4",
+          "hashEncoding": "UTF-8, no BOM, original content from registry"
+        }
+      ],
+      "registryDependencies": null,
+      "access": "Public official registry; no login or payment required at acquisition"
+    }
+  ]
+}

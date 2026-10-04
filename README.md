@@ -4,7 +4,7 @@
 
 **[浏览 441 件作品 →](https://fangx-ai.github.io/motion-library/)** · [52 条作者提示词](https://fangx-ai.github.io/motion-library/?type=prompt) · [25 件附源码作品](https://fangx-ai.github.io/motion-library/?type=code)
 
-[![网站实际界面：作品浏览与作者制作资料入口](docs/images/library-overview.jpg)](https://fangx-ai.github.io/motion-library/)
+[![网站真实首页：Aceternity Hero 与 Clearwater 作品](docs/images/library-overview.jpg)](https://fangx-ai.github.io/motion-library/)
 
 ## 从三个案例开始
 
@@ -57,7 +57,7 @@ npm start
 
 ## 维护与许可
 
-本站负责浏览界面、资料呈现与链接适配；原始编目归上游，作品归原作者。界面组件来源为 [Aceternity UI](https://ui.aceternity.com/)，详见 [设计来源](DESIGN-SOURCES.md)。
+界面直接采用 [Aceternity UI](https://ui.aceternity.com/) 的免费 Hero 页面块与官方组件。完整来源、原始文件 hash 和功能适配见 [设计来源](DESIGN-SOURCES.md)。本站接入作品与资料；原始编目归上游，作品归原作者。
 
 补充作品、资料纠错、失效链接或移除请求，请提交 [本站 Issue](https://github.com/Fangx-AI/motion-library/issues/new)，附作品链接与相关来源。
 
