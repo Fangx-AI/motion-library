@@ -1,7 +1,8 @@
 # Aceternity UI component sources
 
-Public source retrieved on 2026-10-03. This interface uses a neutral, content-first adaptation of these Aceternity UI components:
+Public sources retrieved on 2026-10-03 and 2026-10-04. The interface adapts these Aceternity UI components to display real motion work and its production material:
 
+- [Bento Grid](https://ui.aceternity.com/components/bento-grid): official public React source; adapted into a featured layout with one large work and two smaller works, real covers, author credits, resource labels and work detail links. Desktop hover previews load the original external video only on demand; touch and reduced-motion browsing retain the poster.
 - [Resizable Navbar](https://ui.aceternity.com/components/resizable-navbar): official React component; adapted width, border, branding and mobile navigation.
 - [Card Hover Effect](https://ui.aceternity.com/components/card-hover-effect): shared hover surface; accessible work buttons replace demo links.
 - [Tabs](https://ui.aceternity.com/components/tabs): selected pill animation, category counts and filtering.

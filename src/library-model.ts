@@ -29,12 +29,12 @@ export type Work = {
 };
 export type Mode = "all" | "prompt" | "code";
 export const startingPoints = [
-  "2102786378282987591",
-  "2102476258948927543",
-  "2103315922098470926",
   "2103918792845963545",
   "2103273003555402193",
   "2104001664793600012",
+  "2102786378282987591",
+  "2102476258948927543",
+  "2103315922098470926",
 ];
 export const hasOriginal = (w: Work) =>
   w.prompt.status === "original" && Boolean(w.prompt.text?.trim());

@@ -23,6 +23,7 @@ import {
 import { GalleryHoverEffect } from "./components/ui/gallery-hover-effect";
 import { CategoryTabs } from "./components/ui/category-tabs";
 import { AnimatedDialog } from "./components/ui/animated-dialog";
+import { BentoGrid } from "./components/ui/bento-grid";
 import {
   selectWorks,
   hasOriginal,
@@ -133,7 +134,7 @@ function Header() {
     </Navbar>
   );
 }
-function Cover({ work }: { work: Work }) {
+function Cover({ work, eager = false }: { work: Work; eager?: boolean }) {
   const [failed, setFailed] = useState(false);
   return failed ? (
     <span className="cover-fallback">
@@ -144,10 +145,130 @@ function Cover({ work }: { work: Work }) {
     <img
       src={work.cover}
       alt={work.title}
-      loading="lazy"
+      loading={eager ? "eager" : "lazy"}
       decoding="async"
       onError={() => setFailed(true)}
     />
+  );
+}
+function FeaturedWork({
+  work,
+  large,
+  open,
+}: {
+  work: Work;
+  large: boolean;
+  open: (work: Work) => void;
+}) {
+  const [preview, setPreview] = useState(false);
+  const [ready, setReady] = useState(false);
+  function startPreview() {
+    if (
+      work.video &&
+      matchMedia("(hover: hover) and (pointer: fine)").matches &&
+      !matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      setPreview(true);
+  }
+  return (
+    <button
+      className={`featured-work ${large ? "featured-main" : "featured-small"}`}
+      onClick={() => {
+        setPreview(false);
+        setReady(false);
+        open(work);
+      }}
+      aria-label={`观看精选作品：${work.title}`}
+      onPointerEnter={startPreview}
+      onPointerLeave={() => {
+        setPreview(false);
+        setReady(false);
+      }}
+    >
+      <Cover work={work} eager />
+      {preview && (
+        <video
+          className={`featured-preview ${ready ? "is-ready" : ""}`}
+          src={work.video}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          aria-hidden="true"
+          onLoadedData={() => setReady(true)}
+          onError={() => {
+            setPreview(false);
+            setReady(false);
+          }}
+        />
+      )}
+      <div className="featured-top">
+        <span>{hasCode(work) ? "附源码" : "作者提示词"}</span>
+        <span>{duration(work.duration)}</span>
+      </div>
+      <div className="featured-caption">
+        <span className="featured-category">{work.category}</span>
+        <h2>{large ? "Clearwater" : work.title}</h2>
+        <div className="featured-bottom">
+          <span>{large ? "实时水面与交互涟漪" : `@${work.author.handle}`}</span>
+          <span className="featured-play" aria-hidden="true">
+            <IconPlayerPlayFilled size={13} />
+          </span>
+        </div>
+        {large && <small>@{work.author.handle}</small>}
+      </div>
+    </button>
+  );
+}
+function Showcase({
+  works,
+  open,
+}: {
+  works: Work[];
+  open: (work: Work) => void;
+}) {
+  const featured = [
+    "2102786378282987591",
+    "2102476258948927543",
+    "2103315922098470926",
+  ]
+    .map((id) => works.find((w) => w.id === id))
+    .filter((w): w is Work => !!w);
+  return (
+    <section className="showcase" aria-label="精选作品">
+      <div className="showcase-intro">
+        <span className="editorial-label">动效作品与制作资料</span>
+        <h1>
+          Motion
+          <br /> Library<span className="title-period">.</span>
+        </h1>
+        <p>看作品，也看它怎么做。</p>
+        <div className="showcase-facts">
+          <div>
+            <strong>{works.length || 441}</strong>
+            <span>作品</span>
+          </div>
+          <div>
+            <strong>52</strong>
+            <span>作者原文</span>
+          </div>
+          <div>
+            <strong>25</strong>
+            <span>源码</span>
+          </div>
+        </div>
+        <a href="#library" className="browse-link">
+          浏览作品库
+          <IconArrowUpRight size={18} />
+        </a>
+      </div>
+      <BentoGrid className="featured-grid">
+        {featured.map((w, i) => (
+          <FeaturedWork work={w} large={i === 0} open={open} key={w.id} />
+        ))}
+      </BentoGrid>
+    </section>
   );
 }
 function Prompt({ work }: { work: Work }) {
@@ -479,167 +600,177 @@ function App() {
         跳到作品
       </a>
       <Header />
-      <main className="page-main" id="library">
-        <div className="library-title">
-          <div>
-            <h1>动效作品库</h1>
-            <p>观看作品，阅读作者提示词，查看制作源码。</p>
+      <main className="page-main">
+        {mode === "all" && category === "全部" && !query.trim() && (
+          <Showcase works={works} open={open} />
+        )}
+        <section className="collection" id="library" aria-label="浏览作品库">
+          <div className="library-title">
+            <div>
+              <h2>
+                作品库
+                <span className="collection-number">
+                  {" "}
+                  / {works.length || 441}
+                </span>
+              </h2>
+            </div>
+            <span className="snapshot-label">2026.10 · 内容快照</span>
           </div>
-          <span className="snapshot-label">2026.10 · 内容快照</span>
-        </div>
-        <div className="resource-modes" aria-label="按创作资料浏览">
-          {(["all", "prompt", "code"] as Mode[]).map((key) => (
-            <button
-              key={key}
-              aria-pressed={mode === key}
-              onClick={() => {
-                setMode(key);
-                setCategory("全部");
-              }}
-            >
-              {modeLabels[key]}
-              <span>{modeCounts[key] || "—"}</span>
-            </button>
-          ))}
-        </div>
-        <div className="toolbar">
-          <label className="search-control">
-            <IconSearch size={19} aria-hidden="true" />
-            <input
-              ref={search}
-              type="search"
-              aria-label="搜索作品、作者或提示词"
-              placeholder="搜索作品、作者或提示词"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <kbd>/</kbd>
-          </label>
-          <label className="sort-control">
-            <span className="sr-only">作品排序</span>
-            <select
-              aria-label="作品排序"
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-            >
-              <option value="editorial">浏览顺序</option>
-              <option value="popular">收藏最多</option>
-              <option value="latest">最新发布</option>
-            </select>
-          </label>
-        </div>
-        <CategoryTabs
-          tabs={categoryCounts}
-          active={category}
-          onChange={setCategory}
-        />
-        <div className="results-bar">
-          <p role="status" aria-live="polite">
-            {error
-              ? "作品加载失败"
-              : works.length
-                ? `${selected.length} 件作品${query ? " · " + query : ""}`
-                : "正在载入作品…"}
-          </p>
-          <div>
-            {(query || category !== "全部") && (
+          <div className="resource-modes" aria-label="按创作资料浏览">
+            {(["all", "prompt", "code"] as Mode[]).map((key) => (
               <button
-                className="clear-filters"
+                key={key}
+                aria-pressed={mode === key}
                 onClick={() => {
-                  setQuery("");
+                  setMode(key);
                   setCategory("全部");
                 }}
               >
-                清除筛选
-                <IconX size={13} />
+                {modeLabels[key]}
+                <span>{modeCounts[key] || "—"}</span>
               </button>
-            )}
-            <span>
-              {mode === "prompt"
-                ? "仅作者原文，排除任务描述"
-                : mode === "code"
-                  ? "许可见各项目说明"
-                  : "点击封面观看作品"}
-            </span>
+            ))}
           </div>
-        </div>
-        {error && (
-          <div className="empty-state">
-            <p>请检查网络后重试。</p>
-            <button onClick={() => location.reload()}>重新载入</button>
-          </div>
-        )}
-        <GalleryHoverEffect
-          items={selected.slice(0, limit)}
-          renderItem={(w: Work) => (
-            <>
-              <button
-                className="work-cover"
-                onClick={() => open(w)}
-                aria-label={`查看 ${w.title}`}
+          <div className="toolbar">
+            <label className="search-control">
+              <IconSearch size={19} aria-hidden="true" />
+              <input
+                ref={search}
+                type="search"
+                aria-label="搜索作品、作者或提示词"
+                placeholder="搜索作品、作者或提示词"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <kbd>/</kbd>
+            </label>
+            <label className="sort-control">
+              <span className="sr-only">作品排序</span>
+              <select
+                aria-label="作品排序"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
               >
-                <Cover work={w} />
-                <span className="play-icon">
-                  <IconPlayerPlayFilled size={14} />
-                </span>
-                <span className="duration">{duration(w.duration)}</span>
-              </button>
-              <div className="work-content">
-                <span className="work-category">{w.category}</span>
-                <h2>
-                  <button onClick={() => open(w)}>{w.title}</button>
-                </h2>
-                <div className="work-byline">
-                  <Link href={w.author.url}>@{w.author.handle}</Link>
-                </div>
-                <div className="work-actions">
-                  {hasOriginal(w) && (
-                    <button onClick={() => open(w, "prompt-content")}>
-                      提示词原文
-                      <IconArrowUpRight size={12} />
-                    </button>
-                  )}
-                  {hasCode(w) && (
-                    <button onClick={() => open(w, "resources-content")}>
-                      <IconCode size={12} />
-                      源码
-                    </button>
-                  )}
-                  {!hasOriginal(w) &&
-                    !hasCode(w) &&
-                    w.prompt.status === "original" && (
-                      <span>提示词来源链接</span>
-                    )}
-                  {!hasOriginal(w) &&
-                    !hasCode(w) &&
-                    w.prompt.status === "brief" && <span>任务描述</span>}
-                  {!hasOriginal(w) &&
-                    !hasCode(w) &&
-                    w.prompt.status === "unknown" && (
-                      <span>原帖与作品资料</span>
-                    )}
-                </div>
-              </div>
-            </>
-          )}
-        />
-        {works.length > 0 && !selected.length && (
-          <div className="empty-state">
-            <h2>没有匹配的作品</h2>
-            <p>换个关键词，或查看全部作品。</p>
-            <button onClick={reset}>清除筛选</button>
+                <option value="editorial">浏览顺序</option>
+                <option value="popular">收藏最多</option>
+                <option value="latest">最新发布</option>
+              </select>
+            </label>
           </div>
-        )}
-        {selected.length > limit && (
-          <div className="load-more">
-            <button onClick={() => setLimit((n) => n + 24)}>
-              加载更多
+          <CategoryTabs
+            tabs={categoryCounts}
+            active={category}
+            onChange={setCategory}
+          />
+          <div className="results-bar">
+            <p role="status" aria-live="polite">
+              {error
+                ? "作品加载失败"
+                : works.length
+                  ? `${selected.length} 件作品${query ? " · " + query : ""}`
+                  : "正在载入作品…"}
+            </p>
+            <div>
+              {(query || category !== "全部") && (
+                <button
+                  className="clear-filters"
+                  onClick={() => {
+                    setQuery("");
+                    setCategory("全部");
+                  }}
+                >
+                  清除筛选
+                  <IconX size={13} />
+                </button>
+              )}
               <span>
-                {Math.min(limit, selected.length)} / {selected.length}
+                {mode === "prompt"
+                  ? "仅作者原文，排除任务描述"
+                  : mode === "code"
+                    ? "许可见各项目说明"
+                    : "点击封面观看作品"}
               </span>
-            </button>
+            </div>
           </div>
-        )}
+          {error && (
+            <div className="empty-state">
+              <p>请检查网络后重试。</p>
+              <button onClick={() => location.reload()}>重新载入</button>
+            </div>
+          )}
+          <GalleryHoverEffect
+            items={selected.slice(0, limit)}
+            renderItem={(w: Work) => (
+              <>
+                <button
+                  className="work-cover"
+                  onClick={() => open(w)}
+                  aria-label={`查看 ${w.title}`}
+                >
+                  <Cover work={w} />
+                  <span className="play-icon">
+                    <IconPlayerPlayFilled size={14} />
+                  </span>
+                  <span className="duration">{duration(w.duration)}</span>
+                </button>
+                <div className="work-content">
+                  <span className="work-category">{w.category}</span>
+                  <h2>
+                    <button onClick={() => open(w)}>{w.title}</button>
+                  </h2>
+                  <div className="work-byline">
+                    <Link href={w.author.url}>@{w.author.handle}</Link>
+                  </div>
+                  <div className="work-actions">
+                    {hasOriginal(w) && (
+                      <button onClick={() => open(w, "prompt-content")}>
+                        提示词原文
+                        <IconArrowUpRight size={12} />
+                      </button>
+                    )}
+                    {hasCode(w) && (
+                      <button onClick={() => open(w, "resources-content")}>
+                        <IconCode size={12} />
+                        源码
+                      </button>
+                    )}
+                    {!hasOriginal(w) &&
+                      !hasCode(w) &&
+                      w.prompt.status === "original" && (
+                        <span>提示词来源链接</span>
+                      )}
+                    {!hasOriginal(w) &&
+                      !hasCode(w) &&
+                      w.prompt.status === "brief" && <span>任务描述</span>}
+                    {!hasOriginal(w) &&
+                      !hasCode(w) &&
+                      w.prompt.status === "unknown" && (
+                        <span>原帖与作品资料</span>
+                      )}
+                  </div>
+                </div>
+              </>
+            )}
+          />
+          {works.length > 0 && !selected.length && (
+            <div className="empty-state">
+              <h2>没有匹配的作品</h2>
+              <p>换个关键词，或查看全部作品。</p>
+              <button onClick={reset}>清除筛选</button>
+            </div>
+          )}
+          {selected.length > limit && (
+            <div className="load-more">
+              <button onClick={() => setLimit((n) => n + 24)}>
+                加载更多
+                <span>
+                  {Math.min(limit, selected.length)} / {selected.length}
+                </span>
+              </button>
+            </div>
+          )}
+        </section>
       </main>
       <footer id="sources">
         <div>
