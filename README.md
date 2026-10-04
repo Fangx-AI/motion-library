@@ -53,6 +53,8 @@ npm start
 
 线上版基于已授权的 [Aceternity AI SaaS Template](https://ui.aceternity.com/templates/ai-saas-template) 黑色套件，模板开发源码保留私有。本仓库包含网站成品、作品编目与 `legacy-src/` 历史免费示例；来源和版本见 [设计来源](DESIGN-SOURCES.md)，分发范围见 [公开内容范围](docs/PUBLIC_PRIVATE.md)。
 
+已安排每日内容检查；有经核验的上游变化才发布，避免重复或未经确认的条目。见 [每日维护流程](docs/DAILY_UPDATES.md)。
+
 补充作品、资料纠错、失效链接或移除请求，请提交 [本站 Issue](https://github.com/Fangx-AI/motion-library/issues/new)，附作品链接与相关来源。
 
 本站 [MIT 许可](LICENSE)仅适用于本站原创部分，不覆盖已购模板、第三方作品、提示词与媒体，见 [第三方内容与许可](THIRD_PARTY.md)。
