@@ -12,6 +12,9 @@ import {
   IconCheck,
   IconArrowLeft,
   IconArrowRight,
+  IconWorld,
+  IconBook2,
+  IconPlayerPause,
 } from "@tabler/icons-react";
 import {
   Navbar,
@@ -28,42 +31,45 @@ import {
   selectWorks,
   hasOriginal,
   hasCode,
+  hasDemo,
+  formatDate,
   duration,
   type Work,
   type Mode,
 } from "./library-model";
+import { featuredCases, type FeaturedCase } from "./editorial";
 
 const PROJECT = "https://github.com/Fangx-AI/motion-library";
 const UPSTREAM = "https://github.com/guanmo-ai/awesome-ai-motion";
-const modeLabels: { [key in Mode]: string } = {
+const modeLabels: Record<Mode, string> = {
   all: "全部作品",
-  prompt: "提示词正文",
-  code: "源码",
+  prompt: "作者提示词",
+  code: "附源码",
 };
-function params() {
-  return new URLSearchParams(location.search);
-}
-function updateUrl(patch: Record<string, string | null>) {
+const params = () => new URLSearchParams(location.search);
+function updateUrl(patch: Record<string, string | null>, push = false) {
   const url = new URL(location.href);
-  for (const [k, v] of Object.entries(patch))
-    v ? url.searchParams.set(k, v) : url.searchParams.delete(k);
-  history.replaceState(null, "", url);
+  for (const [key, value] of Object.entries(patch))
+    value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
+  if (push) history.pushState({ motionWork: true }, "", url);
+  else history.replaceState(history.state, "", url);
 }
 function Link({
   href,
   children,
   className,
-}: {
-  href: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
+  ...props
+}: { href: string; children: React.ReactNode; className?: string } & Omit<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  "href"
+>) {
   return (
     <a
-      className={className}
       href={/^https:\/\//.test(href || "") ? href : undefined}
+      className={className}
       target="_blank"
       rel="noopener noreferrer"
+      {...props}
     >
       {children}
     </a>
@@ -71,7 +77,7 @@ function Link({
 }
 function Brand() {
   return (
-    <a className="brand" href="./">
+    <a className="brand" href="./" aria-label="Motion Library 首页">
       <span className="brand-mark" aria-hidden="true">
         m.
       </span>
@@ -79,7 +85,7 @@ function Brand() {
     </a>
   );
 }
-function Header() {
+function Header({ search }: { search: () => void }) {
   const [menu, setMenu] = useState(false);
   useEffect(() => {
     if (!menu) return;
@@ -90,13 +96,17 @@ function Header() {
     return () => document.removeEventListener("keydown", key);
   }, [menu]);
   return (
-    <Navbar className="site-navbar fixed top-4">
+    <Navbar className="site-navbar">
       <NavBody className="nav-body">
         <Brand />
         <nav className="header-links" aria-label="主导航">
+          <a href="#selected">编辑选读</a>
           <a href="#library">作品库</a>
-          <a href="#sources">关于收录</a>
-          <Link href={PROJECT}>
+          <button onClick={search}>
+            <IconSearch size={16} />
+            搜索<span className="key-hint">/</span>
+          </button>
+          <Link href={PROJECT} className="github-link">
             GitHub
             <IconArrowUpRight size={14} />
           </Link>
@@ -112,7 +122,7 @@ function Header() {
             aria-controls="mobile-links"
             onClick={() => setMenu(!menu)}
           >
-            {menu ? <IconX size={20} /> : <IconMenu2 size={20} />}
+            {menu ? <IconX size={21} /> : <IconMenu2 size={21} />}
           </button>
         </MobileNavHeader>
         <MobileNavMenu
@@ -121,13 +131,24 @@ function Header() {
           className="mobile-menu"
         >
           <nav id="mobile-links" aria-label="手机导航">
+            <a href="#selected" onClick={() => setMenu(false)}>
+              编辑选读
+            </a>
             <a href="#library" onClick={() => setMenu(false)}>
               作品库
             </a>
-            <a href="#sources" onClick={() => setMenu(false)}>
-              关于收录
-            </a>
-            <Link href={PROJECT}>GitHub</Link>
+            <button
+              onClick={() => {
+                setMenu(false);
+                search();
+              }}
+            >
+              搜索作品
+            </button>
+            <Link href={PROJECT}>
+              GitHub
+              <IconArrowUpRight size={16} />
+            </Link>
           </nav>
         </MobileNavMenu>
       </MobileNav>
@@ -139,7 +160,7 @@ function Cover({ work, eager = false }: { work: Work; eager?: boolean }) {
   return failed ? (
     <span className="cover-fallback">
       {work.title}
-      <small>封面暂不可用</small>
+      <small>封面暂不可用，仍可查看作者资料。</small>
     </span>
   ) : (
     <img
@@ -151,44 +172,83 @@ function Cover({ work, eager = false }: { work: Work; eager?: boolean }) {
     />
   );
 }
-function FeaturedWork({
+function PreviewCover({
   work,
-  large,
-  open,
+  eager = false,
+  autoPreview = false,
+  hoverPreview = true,
+  className,
+  label,
+  onClick,
 }: {
   work: Work;
-  large: boolean;
-  open: (work: Work) => void;
+  eager?: boolean;
+  autoPreview?: boolean;
+  hoverPreview?: boolean;
+  className: string;
+  label: string;
+  onClick: () => void;
 }) {
-  const [preview, setPreview] = useState(false);
-  const [ready, setReady] = useState(false);
-  function startPreview() {
-    if (
-      work.video &&
-      matchMedia("(hover: hover) and (pointer: fine)").matches &&
-      !matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      setPreview(true);
-  }
+  const [preview, setPreview] = useState(false),
+    [ready, setReady] = useState(false);
+  const cover = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    if (!autoPreview || !work.video || motion.matches) {
+      setPreview(false);
+      setReady(false);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setPreview(entry.isIntersecting);
+        if (!entry.isIntersecting) setReady(false);
+      },
+      { threshold: 0.25 },
+    );
+    if (cover.current) observer.observe(cover.current);
+    const stopMotion = () => {
+      if (motion.matches) {
+        setPreview(false);
+        setReady(false);
+      }
+    };
+    motion.addEventListener("change", stopMotion);
+    return () => {
+      observer.disconnect();
+      motion.removeEventListener("change", stopMotion);
+    };
+  }, [autoPreview, work.video]);
+  const stop = () => {
+    setPreview(false);
+    setReady(false);
+  };
   return (
     <button
-      className={`featured-work ${large ? "featured-main" : "featured-small"}`}
+      ref={cover}
+      className={className}
+      aria-label={label}
       onClick={() => {
-        setPreview(false);
-        setReady(false);
-        open(work);
+        stop();
+        onClick();
       }}
-      aria-label={`观看精选作品：${work.title}`}
-      onPointerEnter={startPreview}
+      onPointerEnter={() => {
+        if (
+          hoverPreview &&
+          work.video &&
+          matchMedia("(hover: hover) and (pointer: fine)").matches &&
+          !matchMedia("(prefers-reduced-motion: reduce)").matches
+        )
+          setPreview(true);
+      }}
       onPointerLeave={() => {
-        setPreview(false);
-        setReady(false);
+        if (!autoPreview) stop();
       }}
     >
-      <Cover work={work} eager />
+      <Cover work={work} eager={eager} />
       {preview && (
         <video
-          className={`featured-preview ${ready ? "is-ready" : ""}`}
+          className={`cover-preview ${ready ? "is-ready" : ""}`}
           src={work.video}
           autoPlay
           muted
@@ -197,157 +257,517 @@ function FeaturedWork({
           preload="none"
           aria-hidden="true"
           onLoadedData={() => setReady(true)}
-          onError={() => {
-            setPreview(false);
-            setReady(false);
-          }}
+          onError={stop}
         />
       )}
-      <div className="featured-top">
-        <span>{hasCode(work) ? "附源码" : "作者提示词"}</span>
-        <span>{duration(work.duration)}</span>
-      </div>
-      <div className="featured-caption">
-        <span className="featured-category">{work.category}</span>
-        <h2>{large ? "Clearwater" : work.title}</h2>
-        <div className="featured-bottom">
-          <span>{large ? "实时水面与交互涟漪" : `@${work.author.handle}`}</span>
-          <span className="featured-play" aria-hidden="true">
-            <IconPlayerPlayFilled size={13} />
-          </span>
-        </div>
-        {large && <small>@{work.author.handle}</small>}
-      </div>
+      <span className="cover-play">
+        <IconPlayerPlayFilled size={15} />
+        {!ready && <span>观看效果</span>}
+      </span>
+      <span className="cover-duration">{duration(work.duration)}</span>
     </button>
   );
 }
-function Showcase({
-  works,
+function SearchField({
+  value,
+  onChange,
+  inputRef,
+  hero = false,
+  onSubmit,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+  hero?: boolean;
+  onSubmit?: () => void;
+}) {
+  return (
+    <form
+      className={`search-field ${hero ? "intro-search" : ""}`}
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit?.();
+      }}
+    >
+      <IconSearch size={19} aria-hidden="true" />
+      <input
+        type="search"
+        ref={inputRef}
+        aria-label={hero ? "搜索动效参考" : "搜索作品、作者或提示词"}
+        placeholder={
+          hero ? "搜索效果、作者、制作方式" : "搜索作品、作者或提示词"
+        }
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {hero ? (
+        <button aria-label="查看搜索结果" type="submit">
+          <IconArrowRight size={18} />
+        </button>
+      ) : (
+        <kbd aria-hidden="true">/</kbd>
+      )}
+    </form>
+  );
+}
+function Study({
+  work,
+  entry,
+  index,
+  preview,
   open,
 }: {
-  works: Work[];
-  open: (work: Work) => void;
+  work: Work;
+  entry: FeaturedCase;
+  index: number;
+  preview: boolean;
+  open: (work: Work, section?: string) => void;
 }) {
-  const featured = [
-    "2102786378282987591",
-    "2102476258948927543",
-    "2103315922098470926",
-  ]
-    .map((id) => works.find((w) => w.id === id))
-    .filter((w): w is Work => !!w);
   return (
-    <section className="showcase" aria-label="精选作品">
-      <div className="showcase-intro">
-        <span className="editorial-label">动效作品与制作资料</span>
-        <h1>
-          Motion
-          <br /> Library<span className="title-period">.</span>
-        </h1>
-        <p>看作品，也看它怎么做。</p>
-        <div className="showcase-facts">
-          <div>
-            <strong>{works.length || 441}</strong>
-            <span>作品</span>
-          </div>
-          <div>
-            <strong>52</strong>
-            <span>作者原文</span>
-          </div>
-          <div>
-            <strong>25</strong>
-            <span>源码</span>
-          </div>
+    <article className="study-card">
+      <PreviewCover
+        work={work}
+        eager
+        autoPreview={preview && index === 0}
+        hoverPreview={preview}
+        className="study-cover"
+        label={`观看精选作品：${work.title}`}
+        onClick={() => open(work)}
+      />
+      <div className="study-body">
+        <div className="study-kicker">
+          <span>{entry.kicker}</span>
+          <span className="study-index">0{index + 1}</span>
         </div>
-        <a href="#library" className="browse-link">
-          浏览作品库
-          <IconArrowUpRight size={18} />
-        </a>
+        <h3>
+          <button onClick={() => open(work)}>
+            {index === 0
+              ? "Clearwater · 交互水面"
+              : index === 1
+                ? "像素巫师 · 施法循环"
+                : "一个形状，串起整套 UI"}
+          </button>
+        </h3>
+        <p>
+          {index === 0
+            ? "实时折射与点击涟漪，附 WebGL2 源码。"
+            : index === 1
+              ? "128 × 96 画布、角色状态与粒子更新规格。"
+              : "逐拍形变、时间函数与循环检查指令。"}
+        </p>
+        <div className="study-footer">
+          <Link href={work.author.url}>@{work.author.handle}</Link>
+          <button
+            onClick={() =>
+              open(work, index === 0 ? "resources-content" : "prompt-content")
+            }
+          >
+            {index === 0 ? "演示与源码" : "读作者指令"}
+            <IconArrowUpRight size={15} />
+          </button>
+        </div>
       </div>
-      <BentoGrid className="featured-grid">
-        {featured.map((w, i) => (
-          <FeaturedWork work={w} large={i === 0} open={open} key={w.id} />
-        ))}
+    </article>
+  );
+}
+function Intro({
+  works,
+  query,
+  setQuery,
+  open,
+  showResults,
+  modalOpen,
+}: {
+  works: Work[];
+  query: string;
+  setQuery: (q: string) => void;
+  open: (work: Work, section?: string) => void;
+  showResults: () => void;
+  modalOpen: boolean;
+}) {
+  const [previews, setPreviews] = useState(
+    () => !matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  return (
+    <section className="intro" id="selected" aria-labelledby="intro-title">
+      <div className="intro-heading">
+        <div>
+          <p className="eyebrow">动效参考 / 制作资料</p>
+          <h1 id="intro-title">
+            动效作品与制作资料<span>。</span>
+          </h1>
+          <p className="intro-description">浏览原作，按作者指令与源码查找。</p>
+        </div>
+        <div className="intro-search-wrap">
+          <SearchField
+            hero
+            value={query}
+            onChange={setQuery}
+            onSubmit={showResults}
+          />
+          <p>{works.length || 441} 件作品 · 标明原文与资料来源</p>
+        </div>
+      </div>
+      <div className="selection-heading">
+        <h2>从这三件开始</h2>
+        <button
+          className="preview-toggle"
+          aria-pressed={previews}
+          onClick={() => setPreviews(!previews)}
+        >
+          {previews ? (
+            <IconPlayerPause size={14} />
+          ) : (
+            <IconPlayerPlayFilled size={14} />
+          )}
+          {previews ? "暂停预览" : "播放预览"}
+        </button>
+      </div>
+      <BentoGrid className="study-grid">
+        {featuredCases.map((entry, index) => {
+          const work = works.find((w) => w.id === entry.id);
+          return (
+            work && (
+              <Study
+                key={work.id}
+                work={work}
+                entry={entry}
+                index={index}
+                preview={previews && !modalOpen}
+                open={open}
+              />
+            )
+          );
+        })}
       </BentoGrid>
     </section>
   );
 }
 function Prompt({ work }: { work: Work }) {
-  const p = work.prompt;
+  const p = work.prompt,
+    text = p.text?.trim();
   const [copied, setCopied] = useState(false),
-    [message, setMessage] = useState("");
-  const original = p.status === "original";
-  const text = p.text?.trim();
+    [message, setMessage] = useState(""),
+    [translated, setTranslated] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
   async function copy() {
     try {
       await navigator.clipboard.writeText(text || "");
       setCopied(true);
-      setMessage("原文已复制");
-      setTimeout(() => {
+      setMessage("作者原文已复制");
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
         setCopied(false);
         setMessage("");
-      }, 2000);
+      }, 2400);
     } catch {
-      setMessage("请选中下方正文复制");
+      setMessage("复制未完成，请选中正文复制。");
     }
   }
+  if (!hasOriginal(work))
+    return (
+      <section
+        id="prompt-content"
+        className="source-note"
+        aria-labelledby="prompt-heading"
+      >
+        <div className="section-heading">
+          <h3 id="prompt-heading">
+            {p.status === "brief" ? "作者制作描述" : "提示词来源"}
+          </h3>
+          <Link href={p.sourceUrl || work.source}>
+            查看原帖
+            <IconArrowUpRight size={14} />
+          </Link>
+        </div>
+        {text ? (
+          <>
+            <blockquote>{text}</blockquote>
+            <p className="muted">作者公开的任务描述，非完整提示词。</p>
+          </>
+        ) : (
+          <p className="muted">
+            {p.status === "original"
+              ? "已收录原文入口，本站暂无提示词正文。"
+              : "暂未收录公开提示词；可以继续查看作者原帖。"}
+          </p>
+        )}
+        {p.noteZh && <p className="source-note-detail">{p.noteZh}</p>}
+        {p.translationZh && (
+          <details className="brief-translation">
+            <summary>中文译文</summary>
+            <p>{p.translationZh}</p>
+          </details>
+        )}
+      </section>
+    );
   return (
     <section
       className="prompt-panel"
       id="prompt-content"
       aria-labelledby="prompt-heading"
     >
-      <div className="section-label">
+      <div className="section-heading prompt-heading">
         <div>
-          <h3 id="prompt-heading">
-            {original
-              ? "作者提示词"
-              : p.status === "brief"
-                ? "任务描述"
-                : "提示词"}
-          </h3>
-          {p.status === "brief" && <p>作者对任务的描述，非完整提示词。</p>}
+          <p className="eyebrow">作者公开资料</p>
+          <h3 id="prompt-heading">提示词原文</h3>
         </div>
-        {text && (
-          <button
-            className="copy-prompt"
-            onClick={copy}
-            aria-label={original ? "复制作者提示词" : "复制任务描述"}
-          >
-            {copied ? <IconCheck size={15} /> : <IconCopy size={15} />}
-            <span>{copied ? "已复制" : "复制原文"}</span>
-          </button>
-        )}
+        <button
+          className="button button-secondary copy-prompt"
+          onClick={copy}
+          aria-label="复制作者提示词"
+        >
+          {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+          {copied ? "已复制" : "复制原文"}
+        </button>
       </div>
-      {text ? (
-        <pre className="prompt-text" tabIndex={0}>
-          {text}
-        </pre>
-      ) : (
-        <p className="prompt-missing">
-          {p.status === "unknown"
-            ? "暂未收录公开提示词。"
-            : "仅有原文来源，暂未收录正文。"}
-        </p>
+      {p.translationZh && (
+        <div className="reader-tabs" aria-label="阅读语言">
+          <button
+            aria-pressed={!translated}
+            onClick={() => setTranslated(false)}
+          >
+            作者原文
+          </button>
+          <button aria-pressed={translated} onClick={() => setTranslated(true)}>
+            中文译文
+          </button>
+        </div>
       )}
-      {p.translationZh?.trim() && (
-        <details className="prompt-translation">
-          <summary>中文译文</summary>
-          <pre className="prompt-text" tabIndex={0}>
-            {p.translationZh}
-          </pre>
-          <small>译文来自参考库，以原文为准。</small>
-        </details>
-      )}
-      {p.noteZh && <p className="prompt-note">{p.noteZh}</p>}
+      <pre
+        className="prompt-text"
+        lang={translated ? "zh-CN" : p.language || "en"}
+      >
+        {translated ? p.translationZh : text}
+      </pre>
+      <div className="prompt-note">
+        {translated && (
+          <p>译文来自参考库，以作者原文为准；复制按钮始终复制作者原文。</p>
+        )}
+        {p.noteZh && <p>{p.noteZh}</p>}
+      </div>
       <div className="prompt-source">
         <Link href={p.sourceUrl || work.source}>
-          原文来源
-          <IconArrowUpRight size={13} />
+          作者原文来源
+          <IconArrowUpRight size={14} />
         </Link>
         <span role="status" aria-live="polite">
           {message}
         </span>
       </div>
+    </section>
+  );
+}
+function Media({ work }: { work: Work }) {
+  const video = useRef<HTMLVideoElement>(null),
+    requested = useRef(false);
+  const [state, setState] = useState<
+    "idle" | "loading" | "ready" | "slow" | "failed"
+  >("idle");
+  useEffect(() => {
+    if (state !== "loading" || !requested.current) return;
+    const timer = setTimeout(() => setState("slow"), 15000);
+    return () => clearTimeout(timer);
+  }, [state]);
+  return (
+    <div className="media-block">
+      <div className="detail-media-wrap">
+        {work.video ? (
+          <video
+            ref={video}
+            controls
+            playsInline
+            preload="none"
+            className="detail-media"
+            poster={work.cover}
+            src={work.video}
+            onPlay={() => {
+              requested.current = true;
+              setState(
+                video.current && video.current.readyState >= 3
+                  ? "ready"
+                  : "loading",
+              );
+            }}
+            onWaiting={() => {
+              if (requested.current) setState("loading");
+            }}
+            onCanPlay={() => setState("ready")}
+            onPlaying={() => setState("ready")}
+            onPause={() => {
+              if (state === "loading" || state === "slow") setState("idle");
+            }}
+            onError={() => setState("failed")}
+          />
+        ) : (
+          <Cover work={work} eager />
+        )}
+      </div>
+      {(state === "failed" || state === "slow" || !work.video) && (
+        <div className="media-status" role="status">
+          <span>
+            {state === "failed"
+              ? "视频暂时无法加载。"
+              : state === "slow"
+                ? "加载较慢，可以前往作者原帖观看。"
+                : "暂无页内视频，可查看作者原帖。"}
+          </span>
+          <Link href={work.source}>
+            作者原帖
+            <IconArrowUpRight size={14} />
+          </Link>
+          {state === "failed" && (
+            <button
+              onClick={() => {
+                requested.current = false;
+                setState("idle");
+                video.current?.load();
+              }}
+            >
+              重新加载
+            </button>
+          )}
+        </div>
+      )}
+      <div className="media-caption">
+        <span>
+          {work.category} · {duration(work.duration)}
+        </span>
+        <Link href={work.source}>
+          作者原帖
+          <IconArrowUpRight size={14} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+function Materials({ work }: { work: Work }) {
+  const demo =
+      work.demoUrl || work.resources.find((r) => r.kind === "demo")?.url,
+    code = work.resources.find((r) => r.kind === "code"),
+    resources = work.resources.filter(
+      (r) => (r.url !== demo && r !== code) || Boolean(r.note || r.license),
+    );
+  return (
+    <section
+      className="materials"
+      id="resources-content"
+      aria-labelledby="materials-heading"
+    >
+      <div className="section-heading">
+        <h3 id="materials-heading">从哪里开始做</h3>
+      </div>
+      <div className="material-actions">
+        {demo && (
+          <Link href={demo} className="button button-primary">
+            <IconWorld size={17} />
+            {work.demoUrl ? "体验交互" : "打开作品页面"}
+            <IconArrowUpRight size={15} />
+          </Link>
+        )}
+        {hasOriginal(work) && (
+          <a
+            href="#prompt-content"
+            className={`button ${demo ? "button-secondary" : "button-primary"}`}
+            onClick={(e) => {
+              e.preventDefault();
+              document
+                .getElementById("prompt-content")
+                ?.scrollIntoView({ block: "start", behavior: "smooth" });
+            }}
+          >
+            <IconBook2 size={17} />
+            读作者指令
+            <IconArrowRight size={15} />
+          </a>
+        )}
+        {code && (
+          <Link
+            href={code.url}
+            className={`button ${demo || hasOriginal(work) ? "button-secondary" : "button-primary"}`}
+          >
+            <IconCode size={17} />
+            查看源码
+            <IconArrowUpRight size={15} />
+          </Link>
+        )}
+        {!demo && !hasOriginal(work) && !code && (
+          <Link href={work.source} className="button button-primary">
+            查看作者原帖
+            <IconArrowUpRight size={15} />
+          </Link>
+        )}
+      </div>
+      {resources.length > 0 && (
+        <div className="resource-list">
+          {resources.map((r, i) => (
+            <div className="resource-item" key={`${r.url}-${i}`}>
+              {r !== code && (
+                <div className="resource-title">
+                  <span>
+                    {r.kind === "code"
+                      ? "源码"
+                      : r.kind === "demo"
+                        ? "演示"
+                        : "相关资料"}
+                  </span>
+                  {r.url === demo ? (
+                    <span>{r.label || "作品页面"}</span>
+                  ) : (
+                    <Link href={r.url}>
+                      {r.label || "作者资料"}
+                      <IconArrowUpRight size={14} />
+                    </Link>
+                  )}
+                </div>
+              )}
+              {r.license && (
+                <p className="resource-license">
+                  许可：
+                  {r.licenseUrl ? (
+                    <Link href={r.licenseUrl}>
+                      {r.license === "not_specified" ? "未标明" : r.license}
+                      <IconArrowUpRight size={12} />
+                    </Link>
+                  ) : r.license === "not_specified" ? (
+                    "未标明，复用前请核对"
+                  ) : (
+                    r.license
+                  )}
+                </p>
+              )}
+              {r.note && <p>{r.note}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+      {work.guide && (
+        <div className="guide">
+          <div className="guide-label">
+            <span>制作思路</span>
+            <span>上游整理</span>
+          </div>
+          <p>{work.guide.takeawayZh}</p>
+          <ol>
+            {work.guide.stepsZh.map((step, i) => (
+              <li key={i}>{step}</li>
+            ))}
+          </ol>
+          <Link
+            href={`${UPSTREAM}/blob/2ff3da3f72385c7944f53faac253f2a6f5bbf936/cases/${work.id}.md`}
+          >
+            {work.guide.attribution}
+            <IconArrowUpRight size={12} />
+          </Link>
+        </div>
+      )}
+      {!work.resources.length && !work.guide && !demo && !hasOriginal(work) && (
+        <p className="material-empty">
+          目前主要用于效果参考；尚未收录独立的制作资料。
+        </p>
+      )}
     </section>
   );
 }
@@ -358,149 +778,112 @@ function Detail({
   work: Work;
   initialSection: string;
 }) {
-  const [failed, setFailed] = useState(false),
-    [loading, setLoading] = useState(false);
+  const entry = featuredCases.find((c) => c.id === work.id);
   useEffect(() => {
-    if (!loading) return;
-    const timer = setTimeout(() => {
-      setFailed(true);
-      setLoading(false);
-    }, 12000);
-    return () => clearTimeout(timer);
-  }, [loading]);
-  useEffect(() => {
-    if (!initialSection) {
-      document.querySelector<HTMLDialogElement>("dialog")?.scrollTo({ top: 0 });
-      return;
-    }
-    const t = requestAnimationFrame(() =>
-      document
-        .getElementById(initialSection)
-        ?.scrollIntoView({ block: "start" }),
-    );
-    return () => cancelAnimationFrame(t);
+    const dialog = document.querySelector<HTMLDialogElement>("dialog");
+    const frame = requestAnimationFrame(() => {
+      if (initialSection)
+        document
+          .getElementById(initialSection)
+          ?.scrollIntoView({ block: "start" });
+      else dialog?.scrollTo({ top: 0 });
+    });
+    return () => cancelAnimationFrame(frame);
   }, [initialSection]);
   return (
-    <>
-      <div className="detail-intro">
-        <div className="detail-kicker">
-          {work.category}
-          <span>{duration(work.duration)}</span>
-        </div>
+    <div className="detail-content">
+      <header className="detail-intro">
+        <p className="eyebrow">{entry?.kicker || work.category}</p>
         <h2 id="detail-title">{work.title}</h2>
         <div className="detail-byline">
           <Link href={work.author.url}>@{work.author.handle}</Link>
-          <span>{work.date.slice(0, 10)}</span>
+          <span>{formatDate(work.date)}</span>
           <span>{work.model || "模型未标明"}</span>
         </div>
-      </div>
-      <div className="detail-media-wrap">
-        {work.video ? (
-          <video
-            controls
-            playsInline
-            preload="none"
-            className="detail-media"
-            poster={work.cover}
-            src={work.video}
-            onLoadStart={() => setLoading(true)}
-            onLoadedData={() => {
-              setLoading(false);
-              setFailed(false);
-            }}
-            onPlaying={() => {
-              setLoading(false);
-              setFailed(false);
-            }}
-            onError={() => {
-              setFailed(true);
-              setLoading(false);
-            }}
-          />
-        ) : (
-          <img className="detail-media" src={work.cover} alt={work.title} />
-        )}
-      </div>
-      {(failed || !work.video) && (
-        <p className="media-status">
-          {failed ? "外部视频加载失败。" : "页内视频暂不可用。"}
-          <Link href={work.source}>
-            前往作者原帖观看
-            <IconArrowUpRight size={13} />
-          </Link>
-        </p>
-      )}
-      <div className="detail-body">
-        <p className="work-summary">{work.summary}</p>
-        <div className="detail-jump">
-          <Link href={work.source}>
-            作者原帖
-            <IconArrowUpRight size={14} />
-          </Link>
-          {hasOriginal(work) && (
-            <a
-              href="#prompt-content"
-              onClick={(e) => {
-                e.preventDefault();
-                document
-                  .getElementById("prompt-content")
-                  ?.scrollIntoView({ block: "start", behavior: "smooth" });
-              }}
-            >
-              读提示词
-            </a>
-          )}
-          {work.resources.length > 0 && (
-            <a
-              href="#resources-content"
-              onClick={(e) => {
-                e.preventDefault();
-                document
-                  .getElementById("resources-content")
-                  ?.scrollIntoView({ block: "start", behavior: "smooth" });
-              }}
-            >
-              制作资料
-            </a>
-          )}
+      </header>
+      <div className="detail-overview">
+        <div className="detail-visual">
+          <Media work={work} />
+          <p className="work-summary">{work.summary}</p>
         </div>
-        {work.resources.length > 0 && (
-          <section className="resource-list" id="resources-content">
-            <h3>制作资料</h3>
-            {work.resources.map((r, i) => (
-              <div className="resource-item" key={i}>
-                <div className="resource-kind">
-                  {r.kind === "code"
-                    ? "源码"
-                    : r.kind === "demo"
-                      ? "作品网页"
-                      : "相关工具"}
-                </div>
-                <div>
-                  <Link href={r.url}>
-                    {r.label || "查看资料"}
-                    <IconArrowUpRight size={14} />
-                  </Link>
-                  {r.license && (
-                    <small>
-                      许可：
-                      {r.license === "not_specified" ? "未标明" : r.license}
-                    </small>
-                  )}
-                  {r.note && <p>{r.note}</p>}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-        <Prompt work={work} />
-        <p className="detail-attribution">
-          作品归原作者所有。资料整理自{" "}
-          <Link href={UPSTREAM}>Awesome AI Motion</Link>
-          ；公开指令不保证复现结果。
-        </p>
+        <aside className="detail-sidebar">
+          <Materials work={work} />
+          {entry && work.guide ? (
+            <p className="editor-note-short">
+              <span>选读理由</span>
+              {entry.reason}
+            </p>
+          ) : entry ? (
+            <section className="editor-note">
+              <p className="eyebrow">为什么选这件</p>
+              <h3>{entry.title}</h3>
+              <p>{entry.reason}</p>
+              <ul>
+                {entry.learn.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </aside>
       </div>
-    </>
+      <Prompt work={work} />
+      <p className="detail-attribution">
+        作品与原文归作者所有。编目与上游指南来自{" "}
+        <Link href={UPSTREAM}>Awesome AI Motion</Link>
+        ；本项目补充选读理由。公开指令未必包含完整素材与对话。
+      </p>
+    </div>
+  );
+}
+function WorkActions({
+  work,
+  open,
+}: {
+  work: Work;
+  open: (work: Work, section?: string) => void;
+}) {
+  const original = hasOriginal(work),
+    code = hasCode(work),
+    demo = hasDemo(work);
+  return (
+    <div className="work-actions">
+      {original && (
+        <button onClick={() => open(work, "prompt-content")}>
+          <IconBook2 size={13} />
+          作者指令
+        </button>
+      )}
+      {code && (
+        <button onClick={() => open(work, "resources-content")}>
+          <IconCode size={13} />
+          源码
+        </button>
+      )}
+      {demo && (
+        <button onClick={() => open(work, "resources-content")}>
+          <IconWorld size={13} />
+          演示
+        </button>
+      )}
+      {!original &&
+        !code &&
+        !demo &&
+        (work.guide || work.resources.length ? (
+          <button onClick={() => open(work, "resources-content")}>
+            制作资料
+            <IconArrowUpRight size={13} />
+          </button>
+        ) : (
+          <span>
+            {work.prompt.status === "brief" && work.prompt.text?.trim()
+              ? "作者任务描述"
+              : work.prompt.status === "original"
+                ? "提示词来源"
+                : "仅原帖参考"}
+          </span>
+        ))}
+    </div>
   );
 }
 function App() {
@@ -509,30 +892,45 @@ function App() {
   const [query, setQuery] = useState(() => params().get("q") || ""),
     [category, setCategory] = useState(
       () => params().get("category") || "全部",
-    ),
-    [mode, setMode] = useState<Mode>(() =>
-      ["prompt", "code"].includes(params().get("type") || "")
-        ? (params().get("type") as Mode)
-        : "all",
-    ),
-    [sort, setSort] = useState(() => params().get("sort") || "editorial"),
+    );
+  const [mode, setMode] = useState<Mode>(() =>
+    ["prompt", "code"].includes(params().get("type") || "")
+      ? (params().get("type") as Mode)
+      : "all",
+  );
+  const [sort, setSort] = useState(() => params().get("sort") || "editorial"),
     [limit, setLimit] = useState(24),
     [active, setActive] = useState<Work | null>(null),
     [detailSection, setDetailSection] = useState("");
   const search = useRef<HTMLInputElement>(null),
+    results = useRef<HTMLHeadingElement>(null),
     returnFocus = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    fetch("works.json")
+    const controller = new AbortController();
+    fetch("works.json", { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw Error();
         return r.json();
       })
       .then((data: Work[]) => {
         setWorks(data);
-        const w = data.find((w) => w.id === params().get("work"));
-        if (w) setActive(w);
+        const work = data.find((w) => w.id === params().get("work"));
+        if (work) setActive(work);
+        else if (
+          params().has("q") ||
+          params().has("type") ||
+          params().has("category")
+        ) {
+          requestAnimationFrame(() =>
+            document
+              .getElementById("library")
+              ?.scrollIntoView({ block: "start" }),
+          );
+        }
       })
-      .catch(() => setError(true));
+      .catch((e) => {
+        if (e.name !== "AbortError") setError(true);
+      });
     const key = (e: KeyboardEvent) => {
       if (
         e.key === "/" &&
@@ -543,10 +941,14 @@ function App() {
       ) {
         e.preventDefault();
         search.current?.focus();
+        search.current?.scrollIntoView({ block: "center", behavior: "smooth" });
       }
     };
     document.addEventListener("keydown", key);
-    return () => document.removeEventListener("keydown", key);
+    return () => {
+      controller.abort();
+      document.removeEventListener("keydown", key);
+    };
   }, []);
   useEffect(() => {
     setLimit(24);
@@ -557,6 +959,32 @@ function App() {
       sort: sort === "editorial" ? null : sort,
     });
   }, [query, category, mode, sort]);
+  useEffect(() => {
+    const restore = () => {
+      const current = params();
+      setQuery(current.get("q") || "");
+      setCategory(current.get("category") || "全部");
+      setMode(
+        ["prompt", "code"].includes(current.get("type") || "")
+          ? (current.get("type") as Mode)
+          : "all",
+      );
+      setSort(current.get("sort") || "editorial");
+      setDetailSection("");
+      const work = works.find((w) => w.id === current.get("work")) || null;
+      setActive((prior) => {
+        if (prior && !work)
+          requestAnimationFrame(() =>
+            (returnFocus.current || results.current)?.focus({
+              preventScroll: true,
+            }),
+          );
+        return work;
+      });
+    };
+    addEventListener("popstate", restore);
+    return () => removeEventListener("popstate", restore);
+  }, [works]);
   const selected = useMemo(
     () => selectWorks(works, { mode, category, query, sort }),
     [works, mode, category, query, sort],
@@ -580,213 +1008,212 @@ function App() {
     if (!active) returnFocus.current = document.activeElement as HTMLElement;
     setDetailSection(section);
     setActive(work);
-    updateUrl({ work: work.id });
+    updateUrl({ work: work.id }, !active);
   }
   function close() {
+    if (history.state?.motionWork) {
+      history.back();
+      return;
+    }
     setActive(null);
     setDetailSection("");
     updateUrl({ work: null });
-    requestAnimationFrame(() => returnFocus.current?.focus());
+    requestAnimationFrame(() =>
+      (returnFocus.current || results.current)?.focus(),
+    );
   }
   function reset() {
     setQuery("");
     setCategory("全部");
     setMode("all");
   }
+  function showResults() {
+    results.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    results.current?.focus({ preventScroll: true });
+  }
+  function focusSearch() {
+    search.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    search.current?.focus({ preventScroll: true });
+  }
   const position = active ? selected.findIndex((w) => w.id === active.id) : -1;
   return (
     <MotionConfig reducedMotion="user">
       <a className="skip-link" href="#library">
-        跳到作品
+        跳到作品库
       </a>
-      <Header />
+      <Header search={focusSearch} />
       <main className="page-main">
-        {mode === "all" && category === "全部" && !query.trim() && (
-          <Showcase works={works} open={open} />
-        )}
-        <section className="collection" id="library" aria-label="浏览作品库">
+        <Intro
+          works={works}
+          query={query}
+          setQuery={setQuery}
+          open={open}
+          showResults={showResults}
+          modalOpen={!!active}
+        />
+        <section
+          className="collection"
+          id="library"
+          aria-labelledby="library-heading"
+        >
           <div className="library-title">
             <div>
-              <h2>
-                作品库
-                <span className="collection-number">
-                  {" "}
-                  / {works.length || 441}
-                </span>
+              <p className="eyebrow">继续探索</p>
+              <h2 ref={results} tabIndex={-1} id="library-heading">
+                作品库<span>{works.length || 441}</span>
               </h2>
             </div>
-            <span className="snapshot-label">2026.10 · 内容快照</span>
+            <p>
+              作者原文 <strong>{modeCounts.prompt || 52}</strong>
+              <span> / </span>附源码 <strong>{modeCounts.code || 25}</strong>
+            </p>
           </div>
-          <div className="resource-modes" aria-label="按创作资料浏览">
-            {(["all", "prompt", "code"] as Mode[]).map((key) => (
-              <button
-                key={key}
-                aria-pressed={mode === key}
-                onClick={() => {
-                  setMode(key);
-                  setCategory("全部");
-                }}
-              >
-                {modeLabels[key]}
-                <span>{modeCounts[key] || "—"}</span>
-              </button>
-            ))}
+          <div className="library-controls">
+            <div className="toolbar">
+              <div className="resource-modes" aria-label="按制作资料浏览">
+                {(["all", "prompt", "code"] as Mode[]).map((key) => (
+                  <button
+                    key={key}
+                    aria-pressed={mode === key}
+                    onClick={() => {
+                      setMode(key);
+                      setCategory("全部");
+                    }}
+                  >
+                    {modeLabels[key]}
+                    <span>{modeCounts[key] || "—"}</span>
+                  </button>
+                ))}
+              </div>
+              <label className="sort-control">
+                <span className="sr-only">作品排序</span>
+                <select
+                  aria-label="作品排序"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                >
+                  <option value="editorial">推荐顺序</option>
+                  <option value="popular">原帖收藏</option>
+                  <option value="latest">最新发布</option>
+                </select>
+              </label>
+            </div>
+            <SearchField
+              value={query}
+              onChange={setQuery}
+              inputRef={search}
+              onSubmit={showResults}
+            />
+            <CategoryTabs
+              tabs={categoryCounts}
+              active={category}
+              onChange={setCategory}
+            />
           </div>
-          <div className="toolbar">
-            <label className="search-control">
-              <IconSearch size={19} aria-hidden="true" />
-              <input
-                ref={search}
-                type="search"
-                aria-label="搜索作品、作者或提示词"
-                placeholder="搜索作品、作者或提示词"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <kbd>/</kbd>
-            </label>
-            <label className="sort-control">
-              <span className="sr-only">作品排序</span>
-              <select
-                aria-label="作品排序"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-              >
-                <option value="editorial">浏览顺序</option>
-                <option value="popular">收藏最多</option>
-                <option value="latest">最新发布</option>
-              </select>
-            </label>
-          </div>
-          <CategoryTabs
-            tabs={categoryCounts}
-            active={category}
-            onChange={setCategory}
-          />
           <div className="results-bar">
             <p role="status" aria-live="polite">
-              {error
-                ? "作品加载失败"
-                : works.length
-                  ? `${selected.length} 件作品${query ? " · " + query : ""}`
-                  : "正在载入作品…"}
+              {works.length
+                ? `${selected.length} 件作品`
+                : error
+                  ? "读取失败"
+                  : "正在读取作品…"}
             </p>
-            <div>
-              {(query || category !== "全部") && (
-                <button
-                  className="clear-filters"
-                  onClick={() => {
-                    setQuery("");
-                    setCategory("全部");
-                  }}
-                >
-                  清除筛选
-                  <IconX size={13} />
-                </button>
-              )}
-              <span>
-                {mode === "prompt"
-                  ? "仅作者原文，排除任务描述"
-                  : mode === "code"
-                    ? "许可见各项目说明"
-                    : "点击封面观看作品"}
-              </span>
-            </div>
+            <span>
+              {mode === "prompt"
+                ? "作者公开正文，任务描述单独标记"
+                : mode === "code"
+                  ? "资料与许可请以作者项目为准"
+                  : "封面可预览，点击查看作品与资料"}
+            </span>
+            {(query || category !== "全部" || mode !== "all") && (
+              <button onClick={reset}>
+                清除筛选
+                <IconX size={13} />
+              </button>
+            )}
           </div>
           {error && (
             <div className="empty-state">
-              <p>请检查网络后重试。</p>
-              <button onClick={() => location.reload()}>重新载入</button>
+              <h3>作品暂时未能载入</h3>
+              <p>请重新载入，或前往 GitHub 查看项目。</p>
+              <button
+                className="button button-primary"
+                onClick={() => location.reload()}
+              >
+                重新载入
+              </button>
             </div>
           )}
           <GalleryHoverEffect
             items={selected.slice(0, limit)}
-            renderItem={(w: Work) => (
+            renderItem={(work: Work) => (
               <>
-                <button
+                <PreviewCover
+                  work={work}
                   className="work-cover"
-                  onClick={() => open(w)}
-                  aria-label={`查看 ${w.title}`}
-                >
-                  <Cover work={w} />
-                  <span className="play-icon">
-                    <IconPlayerPlayFilled size={14} />
-                  </span>
-                  <span className="duration">{duration(w.duration)}</span>
-                </button>
+                  label={`查看 ${work.title}`}
+                  onClick={() => open(work)}
+                />
                 <div className="work-content">
-                  <span className="work-category">{w.category}</span>
-                  <h2>
-                    <button onClick={() => open(w)}>{w.title}</button>
-                  </h2>
+                  <div className="work-category">{work.category}</div>
+                  <h3>
+                    <button onClick={() => open(work)}>{work.title}</button>
+                  </h3>
                   <div className="work-byline">
-                    <Link href={w.author.url}>@{w.author.handle}</Link>
+                    <Link href={work.author.url}>@{work.author.handle}</Link>
+                    <span>{duration(work.duration)}</span>
                   </div>
-                  <div className="work-actions">
-                    {hasOriginal(w) && (
-                      <button onClick={() => open(w, "prompt-content")}>
-                        提示词原文
-                        <IconArrowUpRight size={12} />
-                      </button>
-                    )}
-                    {hasCode(w) && (
-                      <button onClick={() => open(w, "resources-content")}>
-                        <IconCode size={12} />
-                        源码
-                      </button>
-                    )}
-                    {!hasOriginal(w) &&
-                      !hasCode(w) &&
-                      w.prompt.status === "original" && (
-                        <span>提示词来源链接</span>
-                      )}
-                    {!hasOriginal(w) &&
-                      !hasCode(w) &&
-                      w.prompt.status === "brief" && <span>任务描述</span>}
-                    {!hasOriginal(w) &&
-                      !hasCode(w) &&
-                      w.prompt.status === "unknown" && (
-                        <span>原帖与作品资料</span>
-                      )}
-                  </div>
+                  <WorkActions work={work} open={open} />
                 </div>
               </>
             )}
           />
           {works.length > 0 && !selected.length && (
             <div className="empty-state">
-              <h2>没有匹配的作品</h2>
-              <p>换个关键词，或查看全部作品。</p>
-              <button onClick={reset}>清除筛选</button>
+              <h3>没有找到匹配的作品</h3>
+              <p>试试别的关键词，或清除筛选继续浏览。</p>
+              <button className="button button-primary" onClick={reset}>
+                查看全部作品
+              </button>
             </div>
           )}
           {selected.length > limit && (
             <div className="load-more">
-              <button onClick={() => setLimit((n) => n + 24)}>
-                加载更多
-                <span>
-                  {Math.min(limit, selected.length)} / {selected.length}
-                </span>
+              <button
+                className="button button-secondary"
+                onClick={() => setLimit((n) => n + 24)}
+              >
+                再看 24 件<IconArrowRight size={16} />
               </button>
+              <span>
+                已显示 {Math.min(limit, selected.length)} / {selected.length}
+              </span>
             </div>
           )}
         </section>
       </main>
-      <footer id="sources">
-        <div>
-          <strong>Motion Library</strong>
-          <span>作品与资料索引</span>
+      <footer className="site-footer" id="sources">
+        <div className="footer-top">
+          <div>
+            <Brand />
+            <p>作品值得看，资料有出处。</p>
+          </div>
+          <nav aria-label="来源与项目">
+            <Link href={PROJECT + "/blob/main/SOURCE.md"}>收录来源</Link>
+            <Link href={PROJECT + "/blob/main/THIRD_PARTY.md"}>资料与许可</Link>
+            <Link href={PROJECT + "/issues"}>
+              补充与纠错
+              <IconArrowUpRight size={14} />
+            </Link>
+          </nav>
         </div>
-        <p>
-          {works.length || 441} 件作品，资料整理自{" "}
-          <Link href={UPSTREAM}>观默 / Awesome AI Motion</Link>
-          。作品归原作者所有，视频引用外部来源。
-        </p>
-        <nav aria-label="来源与项目">
-          <Link href={PROJECT + "/blob/main/SOURCE.md"}>收录来源</Link>
-          <Link href={PROJECT + "/blob/main/THIRD_PARTY.md"}>使用说明</Link>
-          <Link href={PROJECT}>GitHub</Link>
-        </nav>
+        <div className="footer-bottom">
+          <p>
+            编目来自 <Link href={UPSTREAM}>观默 · Awesome AI Motion</Link>
+            。作品归原作者所有。
+          </p>
+          <span>内容快照 · 2026.10.03</span>
+        </div>
       </footer>
       <AnimatedDialog open={!!active} onClose={close}>
         {active && (
@@ -796,27 +1223,27 @@ function App() {
               work={active}
               initialSection={detailSection}
             />
-            <div className="detail-pagination">
+            <nav className="detail-pagination" aria-label="相邻作品">
               <button
                 disabled={position <= 0}
                 onClick={() => open(selected[position - 1])}
               >
-                <IconArrowLeft size={15} />
+                <IconArrowLeft size={16} />
                 上一件
               </button>
               <span>
                 {position >= 0
                   ? `${position + 1} / ${selected.length}`
-                  : "作品详情"}
+                  : "编辑选读"}
               </span>
               <button
                 disabled={position < 0 || position >= selected.length - 1}
                 onClick={() => open(selected[position + 1])}
               >
                 下一件
-                <IconArrowRight size={15} />
+                <IconArrowRight size={16} />
               </button>
-            </div>
+            </nav>
           </>
         )}
       </AnimatedDialog>

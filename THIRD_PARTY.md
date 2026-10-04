@@ -1,13 +1,25 @@
-# 来源、署名与复用范围
+# 第三方内容、署名与许可
 
-案例整理自 X（Twitter）原作者公开帖子。每条案例保留作者和原帖链接；本站撰写的标题、简介、分类及译文与作者原文分开。发现线索时参考过以下公开项目，特此保留来源署名：[opus-video-prompts](https://github.com/joeseesun/opus-video-prompts)、[Awesome Claude Video](https://github.com/opusvideo/awesome-claude-video)、[Awesome Opus 5.5 Videos](https://github.com/athemeroy/awesome-opus-5-5-videos) 和 [Frontier Games](https://github.com/theolundqvist/frontier-games)。具体作品仍以作者原帖为准。
+## 编目来源
 
-本仓库自编代码及文档的许可见 [LICENSE](LICENSE)。第三方视频、音轨、封面、提示词和品牌素材不包含在该 MIT 许可内；权利归各自权利人。公开可见和署名不自动授予转载、改作、商业复用或重新上传的许可。本仓库引用原帖媒体播放，不托管第三方视频文件；如需复用，请向相应权利人核对授权。
+原始作品编目来自 [观默 / Awesome AI Motion](https://github.com/guanmo-ai/awesome-ai-motion)，具体版本见 [SOURCE.md](SOURCE.md)。每件作品保留作者与原帖链接；本站的界面适配与文档选编不改变原作者署名。
 
-「源码与网页」只提供作者的原始链接，不收纳第三方源码。公开作品网页也纳入实现参考，标为「公开网页」，不自动认定为完整工程或开源项目。点击许可标签可查看原项目条款；「未标明许可」只表示可公开阅读，不代表已获复用授权。
+上游发现线索时参考过以下项目，沿用其来源署名：[opus-video-prompts](https://github.com/joeseesun/opus-video-prompts)、[Awesome Claude Video](https://github.com/opusvideo/awesome-claude-video)、[Awesome Opus 5.5 Videos](https://github.com/athemeroy/awesome-opus-5-5-videos)、[Frontier Games](https://github.com/theolundqvist/frontier-games)。这些是上游参考来源，具体作品与公开资料仍以作者原帖或原项目为准。
 
-作者公开的指令原文与任务描述分别标记。原文公开不代表完整对话、素材及制作过程均已公开；本站不把任务转述或译文冒充作者原始提示词。详细标记规则见[来源与排序](docs/SOURCES.md)。
+## 作品与制作资料
 
-若作者归属、原文、模型说明或封面有误，请通过[纠错或移除 Issue](https://github.com/guanmo-ai/awesome-ai-motion/issues/new?template=correction.yml)提供对应案例及来源。权利人也可在该入口提出移除请求；核对后更正或移除。
+第三方视频、音轨、封面、提示词和品牌素材不包含在本站 [MIT 许可](LICENSE)内，权利归各自权利人。署名与公开可见不自动授予转载、改作、商业使用或重新上传许可。
 
-公开文件、第三方引用与本地研究的边界见[公开范围说明](docs/PUBLIC_PRIVATE.md)。长篇指令可仅保留作者原文入口；此时不提供全文、译文或文本下载。
+本站引用原帖的外部媒体播放，封面引用上游固定版本；不重新托管第三方视频文件。作者公开指令、创作任务描述与辅助译文分开标记，详见 [资料说明](docs/SOURCES.md)。公开指令可能缺少参考素材、对话与修改过程，不能据此保证复现。
+
+源码、交互演示与指南是通往原项目的链接，不是本站对第三方源码的再授权。不同项目条款不同：例如 Clearwater 标明 MIT，而 Spiderbench 标明自定义只读源码许可。未标明许可只表示未取得明确条款，不表示可自由复用；使用前以原项目条款为准。
+
+## 界面组件
+
+本仓库适配了 Aceternity UI 的公开组件，来源及对应文件见 [DESIGN-SOURCES.md](DESIGN-SOURCES.md)。本站 MIT 许可只覆盖本站原创部分，不替代组件作者的许可与使用条款。
+
+## 纠错与移除
+
+本站署名、资料、封面或链接有误，或权利人希望移除本站引用，请提交 [Fangx-AI/motion-library Issue](https://github.com/Fangx-AI/motion-library/issues/new)，附作品链接、需要处理的内容与相关来源。本站展示由本站维护，不要求先向上游提交请求。
+
+公开文件与第三方引用的范围见 [公开范围](docs/PUBLIC_PRIVATE.md)。
