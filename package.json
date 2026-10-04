@@ -1,1 +1,26 @@
-{"name":"motion-library","private":true,"version":"2.0.0","type":"module","scripts":{"build":"node build.mjs","start":"node serve.mjs"},"dependencies":{"@radix-ui/react-label":"^2.1.15","@tabler/icons-react":"^3.0.0","clsx":"^2.1.1","motion":"^12.0.0","react":"^19.0.0","react-dom":"^19.0.0","react-syntax-highlighter":"^16.1.1","tailwind-merge":"^3.0.0"},"devDependencies":{"@tailwindcss/cli":"^4.0.0","esbuild":"^0.25.0","tailwindcss":"^4.0.0"}}
+{
+  "name": "motion-library",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs",
+    "build:legacy": "node legacy-build.mjs",
+    "build": "node -e \"console.error('The current licensed UI is built from the owner-only workspace. Use npm start to view dist; build:legacy builds the archived free edition.');process.exit(1)\""
+  },
+  "dependencies": {
+    "@radix-ui/react-label": "^2.1.15",
+    "@tabler/icons-react": "^3.0.0",
+    "clsx": "^2.1.1",
+    "motion": "^12.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-syntax-highlighter": "^16.1.1",
+    "tailwind-merge": "^3.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "esbuild": "^0.25.0",
+    "tailwindcss": "^4.0.0"
+  }
+}

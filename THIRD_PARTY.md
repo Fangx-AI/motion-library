@@ -14,9 +14,11 @@
 
 源码、交互演示与指南是通往原项目的链接，不是本站对第三方源码的再授权。不同项目条款不同：例如 Clearwater 标明 MIT，而 Spiderbench 标明自定义只读源码许可。未标明许可只表示未取得明确条款，不表示可自由复用；使用前以原项目条款为准。
 
-## 界面组件
+## 界面模板与组件
 
-本仓库适配了 Aceternity UI 的公开组件，来源及对应文件见 [DESIGN-SOURCES.md](DESIGN-SOURCES.md)。本站 MIT 许可只覆盖本站原创部分，不替代组件作者的许可与使用条款。
+当前网站适配了已购的 [Aceternity AI SaaS Template](https://ui.aceternity.com/templates/ai-saas-template)，官方源码版本、授权记录与适配范围见 [DESIGN-SOURCES.md](DESIGN-SOURCES.md)。付费模板及基于模板的开发源码保留私有，公共仓库发布网站终端产品。
+
+此前免费组件源码与核对资料属于历史版本。本站 MIT 许可只覆盖本站原创部分，不替代 Aceternity 模板、组件作者的许可或使用条款；本站不转授已购模板的许可。
 
 ## 纠错与移除
 

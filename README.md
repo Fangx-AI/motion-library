@@ -4,7 +4,7 @@
 
 **[浏览 441 件作品 →](https://fangx-ai.github.io/motion-library/)** · [52 条作者提示词](https://fangx-ai.github.io/motion-library/?type=prompt) · [25 件附源码作品](https://fangx-ai.github.io/motion-library/?type=code)
 
-[![网站真实首页：Aceternity Hero 与 Clearwater 作品](docs/images/library-overview.jpg)](https://fangx-ai.github.io/motion-library/)
+[![网站真实界面：黑色作品库与作者制作资料入口](docs/images/library-overview.jpg)](https://fangx-ai.github.io/motion-library/)
 
 ## 从三个案例开始
 
@@ -37,28 +37,22 @@
 视频引用外部媒体；播放失败时可打开作者原帖。来源、统计与标记规则见 [SOURCE.md](SOURCE.md) 和 [资料说明](docs/SOURCES.md)。
 
 <details>
-<summary>本地运行与开发</summary>
+<summary>本地预览公开成品</summary>
 
-在 Node.js 24 下验证。以下命令启动静态网站；无需登录或模型 API Key。
+下载本仓库后，在仓库目录运行：
 
 ```bash
-git clone https://github.com/Fangx-AI/motion-library.git
-cd motion-library
-npm ci
-npm run build
 npm start
 ```
 
-打开 [localhost:4188](http://127.0.0.1:4188)。推送 main 后由 GitHub Actions 发布到 GitHub Pages。
-
-[页面与交互](src/library.tsx) · [筛选逻辑](src/library-model.ts) · [界面样式](src/library.css) · [作品数据](dist/works.json)
+打开 [localhost:4188](http://127.0.0.1:4188)。此入口预览已构建的网站；付费模板开发源码保留私有。
 
 </details>
 
 ## 维护与许可
 
-界面直接采用 [Aceternity UI](https://ui.aceternity.com/) 的免费 Hero 页面块与官方组件。完整来源、原始文件 hash 和功能适配见 [设计来源](DESIGN-SOURCES.md)。本站接入作品与资料；原始编目归上游，作品归原作者。
+线上版基于已授权的 [Aceternity AI SaaS Template](https://ui.aceternity.com/templates/ai-saas-template) 黑色套件，模板开发源码保留私有。本仓库包含网站成品、作品编目与 `legacy-src/` 历史免费示例；来源和版本见 [设计来源](DESIGN-SOURCES.md)，分发范围见 [公开内容范围](docs/PUBLIC_PRIVATE.md)。
 
 补充作品、资料纠错、失效链接或移除请求，请提交 [本站 Issue](https://github.com/Fangx-AI/motion-library/issues/new)，附作品链接与相关来源。
 
-本站原创代码按 [MIT](LICENSE) 使用；第三方作品、提示词、媒体与组件不包含在该授权内，见 [第三方内容与许可](THIRD_PARTY.md)。
+本站 [MIT 许可](LICENSE)仅适用于本站原创部分，不覆盖已购模板、第三方作品、提示词与媒体，见 [第三方内容与许可](THIRD_PARTY.md)。

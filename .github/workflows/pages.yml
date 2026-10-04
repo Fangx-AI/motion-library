@@ -22,8 +22,10 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci
-      - run: npm run build
+      # Licensed template source stays in the owner's local workspace.
+      # Deploy the reviewed, minified website rather than rebuilding the legacy UI.
+      - name: Verify published website
+        run: node scripts/verify-site-artifact.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
