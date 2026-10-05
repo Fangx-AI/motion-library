@@ -2,7 +2,7 @@
 
 为动态设计与交互开发查找参考：看作品，读作者公开的约束，查看实现代码。
 
-**[浏览 441 件作品 →](https://fangx-ai.github.io/motion-library/)** · [52 条作者提示词](https://fangx-ai.github.io/motion-library/?type=prompt) · [25 件附源码作品](https://fangx-ai.github.io/motion-library/?type=code)
+**[浏览 463 件作品 →](https://fangx-ai.github.io/motion-library/)** · [52 条作者提示词](https://fangx-ai.github.io/motion-library/?type=prompt) · [25 件附源码作品](https://fangx-ai.github.io/motion-library/?type=code)
 
 [![网站真实界面：黑色作品库与作者制作资料入口](docs/images/library-overview.jpg)](https://fangx-ai.github.io/motion-library/)
 
@@ -12,7 +12,7 @@
 
 **作者**：[Aurélien / @Aurelien\_Gz](https://x.com/Aurelien_Gz)\
 **值得看**：点击涟漪与折射焦散如何共同呈现浅水质感；可把演示与单文件 WebGL2 实现对照阅读。\
-**可得资料**：[交互演示](https://aureliengmz.github.io/clearwater/) · [作者源码（MIT）](https://github.com/Aureliengmz/clearwater) · [上游编目与制作建议](https://github.com/guanmo-ai/awesome-ai-motion/blob/2ff3da3f72385c7944f53faac253f2a6f5bbf936/cases/2102786378282987591.md)
+**可得资料**：[交互演示](https://aureliengmz.github.io/clearwater/) · [作者源码（MIT）](https://github.com/Aureliengmz/clearwater) · [上游编目与制作建议](https://github.com/guanmo-ai/awesome-ai-motion/blob/203472a514a4d41c12b1cee8e82423b5ca311186/cases/2102786378282987591.md)
 
 演示需浏览器支持 WebGL2。公开创作说明提到视频参考，完整实际提示词未取得；上游制作建议是编辑整理。
 
@@ -32,7 +32,7 @@
 
 ## 收录范围
 
-数据基于 **2026-10-03** 快照，编目来源是 [观默 / Awesome AI Motion](https://github.com/guanmo-ai/awesome-ai-motion)。52 条作者原文正文与 76 条任务描述分开标记；19 条中文译文是辅助阅读，只有来源链接的条目不计入正文。附源码不等于允许自由复用，许可以原项目为准。
+数据基于 **2026-10-05 核验的固定版本**，编目来源是 [观默 / Awesome AI Motion](https://github.com/guanmo-ai/awesome-ai-motion)。本轮新增 22 件作品。52 条作者原文正文与 76 条任务描述分开标记；19 条中文译文是辅助阅读，只有来源链接的条目不计入正文。附源码不等于允许自由复用，许可以原项目为准。
 
 视频引用外部媒体；播放失败时可打开作者原帖。来源、统计与标记规则见 [SOURCE.md](SOURCE.md) 和 [资料说明](docs/SOURCES.md)。
 
