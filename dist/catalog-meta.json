@@ -2,20 +2,20 @@
   "schemaVersion": 2,
   "source": {
     "repository": "https://github.com/guanmo-ai/awesome-ai-motion",
-    "commit": "e7447d86fa2e55a6e6f1ad9a779508bb1a07c879",
-    "sha256": "3bfa843cda84b6a4960c0022b58e26cb0b630ce0f601c74cd85e15ed4ff6f38c"
+    "commit": "8f84a284b58cd0d84716f94f49524b3787d47365",
+    "sha256": "6a7d672df5b9bdea0f310458b802ea5f7aa73f1e4c9d9ef3f3bbb69890ccef52"
   },
   "catalog": {
-    "sha256": "a221bad3930972551e1edacfd2a62f58fbec2f433c109324ba6d0b6cc61270de",
+    "sha256": "9cf98a2671365e051f9f2e93ad62d9766f03afb52da5897c8fffeb7967607e1a",
     "counts": {
-      "works": 1194,
+      "works": 1389,
       "originalPrompts": 52,
       "briefs": 76,
       "translations": 19,
-      "codeWorks": 43,
+      "codeWorks": 46,
       "guides": 30,
       "demoUrls": 16,
-      "licenseUrls": 57
+      "licenseUrls": 64
     }
   },
   "retainedSources": [
